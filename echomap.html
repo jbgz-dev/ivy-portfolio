@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EchoMap - 空间回声探索</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --surface-soft: #fbfaf7;
+    --ink: #20242a;
+    --muted: #667085;
+    --line: #e7e1d8;
+    --blue: #2563eb;
+    --teal: #0f766e;
+    --green: #2f7d4f;
+    --rose: #b4234b;
+    --gold: #b7791f;
+    --shadow: 0 18px 60px rgba(32, 36, 42, 0.10);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+  }
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: none; }
+  .page { overflow: hidden; }
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(120deg, rgba(247, 244, 239, 0.96) 0%, rgba(247, 244, 239, 0.86) 52%, rgba(247, 244, 239, 0.70) 100%),
+      url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1800&q=80") center/cover;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 160px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    width: min(1120px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 72px 0 116px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 8px 14px;
+    border: 1px solid rgba(183, 121, 31, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    color: #8a5a12;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 8px 30px rgba(183, 121, 31, 0.08);
+  }
+  h1 {
+    max-width: 760px;
+    font-size: clamp(48px, 8vw, 104px);
+    line-height: 0.95;
+    letter-spacing: 0;
+    font-weight: 900;
+    color: #15181d;
+  }
+  .tagline {
+    max-width: 660px;
+    margin-top: 26px;
+    color: #4b5563;
+    font-size: 21px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 34px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 22px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 15px;
+    font-weight: 800;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: #1f2937; color: white; box-shadow: 0 12px 30px rgba(31, 41, 55, 0.18); }
+  .btn-primary:hover { background: #111827; }
+  .btn-secondary { background: rgba(255, 255, 255, 0.78); color: #1f2937; border-color: rgba(31, 41, 55, 0.14); }
+  .btn-secondary:hover { background: #fff; box-shadow: 0 10px 28px rgba(31, 41, 55, 0.10); }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 52px;
+    max-width: 930px;
+  }
+  .metric {
+    min-height: 112px;
+    padding: 18px;
+    border: 1px solid rgba(231, 225, 216, 0.86);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+  }
+  .metric strong {
+    display: block;
+    font-size: 28px;
+    line-height: 1;
+    color: #111827;
+    margin-bottom: 10px;
+  }
+  .metric span { display: block; color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .section {
+    width: min(1120px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 78px 0;
+  }
+  .section-kicker {
+    margin-bottom: 10px;
+    color: var(--teal);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+  .section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 30px;
+  }
+  .section h2 {
+    max-width: 680px;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.12;
+    letter-spacing: 0;
+  }
+  .section-lead {
+    max-width: 430px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  .flow-step {
+    position: relative;
+    min-height: 130px;
+    padding: 18px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 10px 35px rgba(32, 36, 42, 0.05);
+  }
+  .flow-step::before {
+    content: attr(data-step);
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 900;
+    margin-bottom: 16px;
+  }
+  .flow-step strong { display: block; font-size: 15px; margin-bottom: 6px; }
+  .flow-step span { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .video-card {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .video-frame { background: #111827; aspect-ratio: 16 / 9; }
+  video { display: block; width: 100%; height: 100%; object-fit: contain; background: #111827; }
+  .video-body { padding: 18px 18px 20px; }
+  .video-body h3 { font-size: 18px; margin-bottom: 8px; }
+  .video-body p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .video-link { color: var(--blue); font-size: 14px; font-weight: 800; }
+  .agents-grid, .value-grid, .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .agent-card, .value-card, .tech-item, .role-box, .resume-box {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 12px 40px rgba(32, 36, 42, 0.055);
+  }
+  .agent-card, .value-card { padding: 24px; }
+  .agent-card:nth-child(4), .agent-card:nth-child(5) { grid-column: span 1; }
+  .agent-name {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .agent-card p, .value-card p { color: var(--muted); font-size: 14px; }
+  .agent-card h3, .value-card h3 { font-size: 18px; margin-bottom: 9px; }
+  .value-card.featured { background: #143c35; color: white; border-color: #143c35; }
+  .value-card.featured p { color: rgba(255, 255, 255, 0.78); }
+  .value-card .num { display: block; margin-bottom: 12px; color: var(--rose); font-size: 34px; line-height: 1; font-weight: 900; }
+  .value-card.featured .num { color: #b7f3d9; }
+  .tech-item { display: flex; gap: 13px; align-items: flex-start; padding: 18px; }
+  .tech-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 900;
+    flex: 0 0 auto;
+  }
+  .tech-name { font-size: 15px; font-weight: 900; }
+  .tech-desc { color: var(--muted); font-size: 13px; }
+  .role-box { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px; }
+  .role-title { margin-bottom: 12px; color: var(--teal); font-size: 13px; font-weight: 900; text-transform: uppercase; }
+  .role-items { list-style: none; }
+  .role-items li { padding: 9px 0; border-bottom: 1px solid var(--line); color: #344054; font-size: 15px; }
+  .role-items li:last-child { border-bottom: 0; }
+  .role-items li::before { content: "- "; color: var(--teal); font-weight: 900; }
+  .resume-box {
+    margin-top: 18px;
+    padding: 26px 30px;
+    background: #111827;
+    color: #cbd5e1;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 14px;
+    line-height: 2;
+  }
+  .resume-box .highlight { color: #fef3c7; font-weight: 900; }
+  .footer { border-top: 1px solid var(--line); padding: 44px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+  .footer a { color: var(--blue); font-weight: 800; }
+  @media (max-width: 940px) {
+    .hero { min-height: auto; }
+    .hero-inner { padding: 58px 0 92px; }
+    .metrics, .flow, .agents-grid, .value-grid, .tech-grid, .video-grid, .role-box { grid-template-columns: 1fr 1fr; }
+    .section-head { display: block; }
+    .section-lead { margin-top: 12px; }
+  }
+  @media (max-width: 640px) {
+    .hero-inner, .section { width: min(100% - 28px, 1120px); }
+    .metrics, .flow, .agents-grid, .value-grid, .tech-grid, .video-grid, .role-box { grid-template-columns: 1fr; }
+    .tagline { font-size: 18px; }
+    .btn { width: 100%; }
+    .metric { min-height: auto; }
+    .section { padding: 54px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">百度黑客松决赛 · 600+ 参赛者 · 300+ 支队伍 · 20强 · 潜力黑马奖</div>
+      <h1>EchoMap</h1>
+      <p class="tagline">一款基于真实位置的 AI 空间探索应用：让用户在地图上听见前人的回声，并被 AI 引导去附近真实地点完成探索任务。</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://echo-map.popo.baidu-int.com" target="_blank" rel="noreferrer">在线体验</a>
+        <a class="btn btn-secondary" href="https://github.com/jbgz-dev/Echo-Map" target="_blank" rel="noreferrer">GitHub 仓库</a>
+        <a class="btn btn-secondary" href="./index.html">返回个人主页</a>
+      </div>
+      <div class="metrics">
+        <div class="metric"><strong>600+</strong><span>黑客松参赛者</span></div>
+        <div class="metric"><strong>300+</strong><span>参赛队伍</span></div>
+        <div class="metric"><strong>20强</strong><span>入围决赛作品</span></div>
+        <div class="metric"><strong>5</strong><span>AI Agent 协作</span></div>
+        <div class="metric"><strong>100+</strong><span>百度科技园精品探索回声</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="section-head">
+        <div><div class="section-kicker">Core Experience</div><h2>从真实地点出发，形成“听见回声 - 生成任务 - 导航探索 - 留下新回声”的闭环。</h2></div>
+        <p class="section-lead">EchoMap 不只是地图标注，也不是普通旅游攻略。它把位置、附近 POI、用户记忆和 AI 任务生成串成一次可行动的空间体验。</p>
+      </div>
+      <div class="flow">
+        <div class="flow-step" data-step="1"><strong>进入地点</strong><span>定位到真实空间，创建探索会话</span></div>
+        <div class="flow-step" data-step="2"><strong>空间感知</strong><span>识别地址、天气、附近 POI 与场景氛围</span></div>
+        <div class="flow-step" data-step="3"><strong>听见回声</strong><span>展示附近用户留下的故事、光影与现实建议</span></div>
+        <div class="flow-step" data-step="4"><strong>生成任务</strong><span>AI 结合选中回声和真实地点生成行动任务</span></div>
+        <div class="flow-step" data-step="5"><strong>步行导航</strong><span>调用百度地图路线，引导用户前往任务点</span></div>
+        <div class="flow-step" data-step="6"><strong>现场完成</strong><span>到达后拍摄、录音或文字记录发现</span></div>
+        <div class="flow-step" data-step="7"><strong>留下回声</strong><span>把本次探索沉淀成后来者可听见的新记忆</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="demo">
+      <div class="section-head">
+        <div><div class="section-kicker">Demo Videos</div><h2>宣传片与界面演示</h2></div>
+        <p class="section-lead">视频托管在 GitHub Release。部分浏览器对 MOV 内嵌播放支持不稳定，因此每个视频下方都保留了直接打开链接。</p>
+      </div>
+      <div class="video-grid">
+        <article class="video-card"><div class="video-frame"><video controls preload="metadata" playsinline><source src="https://github.com/jbgz-dev/Echo-Map/releases/download/v1.0/demo1.MOV" type="video/quicktime">当前浏览器不支持内嵌播放。</video></div><div class="video-body"><h3>宣传片：EchoMap 空间回声探索</h3><p>展示项目概念、空间回声体验和黑客松作品完整气质，适合作品集首屏之后快速理解项目。</p><a class="video-link" href="https://github.com/jbgz-dev/Echo-Map/releases/download/v1.0/demo1.MOV" target="_blank" rel="noreferrer">打不开时直接观看 demo1.MOV</a></div></article>
+        <article class="video-card"><div class="video-frame"><video controls preload="metadata" playsinline><source src="https://github.com/jbgz-dev/Echo-Map/releases/download/v1.0/demo2.mov" type="video/quicktime">当前浏览器不支持内嵌播放。</video></div><div class="video-body"><h3>界面演示：从地图回声到任务导航</h3><p>演示用户如何在地图中选择回声、生成任务、导航到附近地点，并在现场留下新的探索内容。</p><a class="video-link" href="https://github.com/jbgz-dev/Echo-Map/releases/download/v1.0/demo2.mov" target="_blank" rel="noreferrer">打不开时直接观看 demo2.mov</a></div></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><div class="section-kicker">AI Architecture</div><h2>5 个 AI Agent 协作，把地图信息转成可执行探索。</h2></div>
+        <p class="section-lead">后端基于 Supabase Edge Functions 拆分 Agent 能力，每个 Agent 输出结构化结果，并配置 fallback 保证演示链路稳定。</p>
+      </div>
+      <div class="agents-grid">
+        <article class="agent-card"><span class="agent-name">spatial-awareness</span><h3>空间感知</h3><p>接入百度地图逆地理编码、天气与附近 POI，推断当前地点的 sceneType、lightLevel、spaceMood 和任务提示。</p></article>
+        <article class="agent-card"><span class="agent-name">echo-memory</span><h3>回声池管理</h3><p>读取附近真实回声，按距离、类型和推荐理由组织成可选择的回声卡片，不足时生成兜底内容。</p></article>
+        <article class="agent-card"><span class="agent-name">task-generator</span><h3>任务生成</h3><p>基于用户选中的回声、空间感知结果和附近真实 POI 坐标，生成可导航、可到点、可完成的探索任务。</p></article>
+        <article class="agent-card"><span class="agent-name">echo-collect</span><h3>内容归档</h3><p>处理用户现场提交的文字、图片或录音，判断回声类型并沉淀到数据库，成为后来者的探索素材。</p></article>
+        <article class="agent-card"><span class="agent-name">result-summary</span><h3>结果总结</h3><p>汇总本次探索路径、听过的回声、完成的任务和留下的内容，生成可分享的个人探索结果页。</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><div class="section-kicker">Value</div><h2>创新性、商业价值与未来前景</h2></div>
+        <p class="section-lead">项目的核心价值在于把“地点”从导航目的地变成可被 AI 编排、可被用户共同创作的体验入口。</p>
+      </div>
+      <div class="value-grid">
+        <article class="value-card featured"><span class="num">100+</span><h3>精品探索回声</h3><p>内测阶段已在百度科技园沉淀 100+ 条精品探索回声，可支持真实园区场景下的连续体验。</p></article>
+        <article class="value-card"><span class="num">01</span><h3>创新性</h3><p>将 LBS、用户生成内容和多 Agent 任务编排结合，让空间内容从“看攻略”升级为“被地点触发的行动”。</p></article>
+        <article class="value-card"><span class="num">02</span><h3>商业价值</h3><p>可作为插件或 SDK 融入文旅、园区、校园、博物馆、商圈和城市活动，增强线下空间的互动留存。</p></article>
+        <article class="value-card"><span class="num">03</span><h3>增长前景</h3><p>用户每次完成任务都会留下新回声，内容资产随使用增长，适合形成地点级社区和品牌活动玩法。</p></article>
+        <article class="value-card"><span class="num">04</span><h3>工程完整度</h3><p>项目已具备前端地图体验、后端 Agent 编排、数据库状态机、真实 POI 导航和内容归档闭环。</p></article>
+        <article class="value-card"><span class="num">05</span><h3>展示成果</h3><p>在 600+ 参赛者、300+ 支队伍中进入 20 强，并获得百度黑客松决赛潜力黑马奖。</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><div><div class="section-kicker">Tech Stack</div><h2>技术栈</h2></div></div>
+      <div class="tech-grid">
+        <div class="tech-item"><span class="tech-icon">R</span><div><div class="tech-name">React + TypeScript</div><div class="tech-desc">前端交互、状态流转与页面编排</div></div></div>
+        <div class="tech-item"><span class="tech-icon">S</span><div><div class="tech-name">Supabase</div><div class="tech-desc">PostgreSQL、Edge Functions、会话数据</div></div></div>
+        <div class="tech-item"><span class="tech-icon">Q</span><div><div class="tech-name">百度千帆 Agent</div><div class="tech-desc">DeepSeek-V3.2，多 Agent 结构化输出</div></div></div>
+        <div class="tech-item"><span class="tech-icon">M</span><div><div class="tech-name">百度地图 BMapGL</div><div class="tech-desc">定位、逆地理编码、POI 与步行路线</div></div></div>
+        <div class="tech-item"><span class="tech-icon">T</span><div><div class="tech-name">TailwindCSS + Motion</div><div class="tech-desc">移动端界面与动画反馈</div></div></div>
+        <div class="tech-item"><span class="tech-icon">P</span><div><div class="tech-name">Popo / Miaoda</div><div class="tech-desc">在线体验、演示托管与快速迭代</div></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><div><div class="section-kicker">My Role</div><h2>我的职责</h2></div><p class="section-lead">主要负责后端、接口、地图接入、数据库与 Agent 链路，把概念落到可演示、可运行的完整产品闭环。</p></div>
+      <div class="role-box">
+        <div><div class="role-title">后端 & 接口</div><ul class="role-items"><li>开发 5 个 Supabase Edge Function Agent</li><li>接入千帆 AI Agent，并完成 prompt 调优</li><li>接入百度地图逆地理、天气、POI 与步行路线能力</li><li>设计数据库表结构、会话状态机与 SQL 种子数据</li></ul></div>
+        <div><div class="role-title">关键问题解决</div><ul class="role-items"><li>设计 11 个状态的 Session 状态机，支撑完整探索链路</li><li>通过 nearbyPois 坐标透传解决任务目标点 0m 问题</li><li>为 Agent 增加 fallback，提升 Demo 稳定性</li><li>构建百度科技园 100+ 条精品探索回声数据资产</li></ul></div>
+      </div>
+      <div class="resume-box"><span class="highlight">简历描述</span><br><br>开发 EchoMap，一款基于真实位置的 AI 空间探索应用，获百度黑客松决赛潜力黑马奖（600+ 参赛者、300+ 支队伍、20强）。<br>负责后端、接口、地图接入、数据库与 Agent 链路，设计并实现 5 个 Supabase Edge Function AI Agent，包括空间感知、回声池管理、任务生成、内容归档和结果总结。<br>接入百度地图 BMapGL，实现真实逆地理编码、附近 POI 推荐、步行路线规划和到达判定；设计 11 状态 Session 状态机与 100+ 条精品探索回声数据，支撑完整的探索 - 任务 - 留声闭环。</div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>EchoMap - 你走过的地方，有人留下过什么。</p><p style="margin-top: 8px;"><a href="./index.html">返回个人主页</a> · <a href="https://echo-map.popo.baidu-int.com" target="_blank" rel="noreferrer">在线体验</a> · <a href="https://github.com/jbgz-dev/Echo-Map" target="_blank" rel="noreferrer">GitHub 仓库</a> · 百度黑客松决赛 2026 · 潜力黑马奖</p></footer>
+</div>
+</body>
+</html>

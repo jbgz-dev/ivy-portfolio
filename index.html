@@ -276,6 +276,14 @@
     gap: 12px;
   }
   .project-card:hover { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 var(--text); }
+  .project-card.featured {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #e8f7ff 0%, #fff2cc 52%, #ffe3ec 100%);
+    min-height: 220px;
+  }
+  .project-card.featured .project-name { font-size: 22px; }
+  .project-card.featured .project-desc { max-width: 720px; font-size: 14px; }
+  .project-card.featured .project-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; }
   .project-emoji { font-size: 32px; line-height: 1; }
   .project-lang {
     display: inline-block;
@@ -418,6 +426,18 @@
   </div>
   <div class="projects-grid">
 
+    <div class="project-card featured reveal">
+      <span class="project-emoji">🗺️</span>
+      <span class="project-lang">AI · Map · Supabase</span>
+      <div class="project-name">EchoMap — 空间回声探索</div>
+      <div class="project-desc">百度黑客松决赛 20 强 / 潜力黑马奖项目。基于真实位置、百度地图和 5 个 AI Agent，把附近回声转化为可导航、可完成、可沉淀的新型空间探索任务；内测阶段已在百度科技园积累 100+ 条精品探索回声。</div>
+      <div class="project-actions">
+        <a class="project-link" href="https://github.com/jbgz-dev/Echo-Map" target="_blank">→ 查看源码</a>
+        <a class="project-link" href="https://echo-map.popo.baidu-int.com" target="_blank">→ 在线体验</a>
+        <a class="project-link" href="./echomap.html" target="_blank">→ 项目详情页</a>
+      </div>
+    </div>
+
     <div class="project-card reveal">
       <span class="project-emoji">🎬</span>
       <span class="project-lang">Python</span>
@@ -472,7 +492,10 @@
       <span class="tag blue">Go · 后端服务 & 工程化</span>
       <span class="tag green">HTML / CSS · 前端页面</span>
       <span class="tag purple">SQL / 数据库设计</span>
-      <span class="tag pink">Git & GitHub</span>
+      <span class="tag pink">AI Agent · Prompt 调优</span>
+      <span class="tag yellow">Supabase · Edge Functions</span>
+      <span class="tag blue">百度地图 API · LBS 应用</span>
+      <span class="tag green">Git & GitHub</span>
       <span class="tag yellow">数据结构与算法</span>
       <span class="tag blue">RESTful API</span>
       <span class="tag green">Linux 基础</span>
